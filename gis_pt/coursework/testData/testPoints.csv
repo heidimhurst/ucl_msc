@@ -1,0 +1,11 @@
+x,y,Classification
+1,13,Outside
+14,8,Inside
+3,8,Outside
+8,9,Boundary
+11,3,Boundary
+14,12,Boundary
+13,4,Inside
+12,11,Outside
+13,2,Inside
+16,4,Inside
