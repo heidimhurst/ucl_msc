@@ -35,10 +35,10 @@ Coursework included analysis of bank and flood height for Arun River ([pdf](http
 
 ## Term 2
 Term 2 courses include the following:
-* Image Understanding
-* Spatial Databases
-* Network and Locational Analysis
-* Spatio-temporal Data Mining
+* Image Understanding ([CEGEG075](https://sp.cege.ucl.ac.uk/study/Pages/Module-Guide.aspx?ModileCd=CEGEG075))
+* Spatial Databases ([CEGEG129](https://sp.cege.ucl.ac.uk/study/Pages/Module-Guide.aspx?ModileCd=CEGEG129))
+* Network and Locational Analysis ([GEOGG152](http://www.geog.ucl.ac.uk/study/graduate-taught/msc-modules/geogg152))
+* Spatio-temporal Data Mining ([CEGEG076](https://sp.cege.ucl.ac.uk/study/Pages/Module-Guide.aspx?ModileCd=CEGEG076))
 
 ## Dissertation
 Dissertation topic pending - stay tuned!
