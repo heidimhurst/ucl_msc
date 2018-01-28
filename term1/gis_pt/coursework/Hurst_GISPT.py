@@ -18,7 +18,7 @@ Examples:
     polygon1.contains(line1, plot=True) # plot and visualize if all vertices in line1 are within polygon1
     point1.isInside(polygon1, plot=True, save=True) # plot and save output if a point is inside a polygon.
 
-__author__ = "VPFW6"
+__author__ = "Heidi M Hurst"
 __date__ = "16 January 2018"
 
 Note: Docstrings and comments based on Google's Python guide
