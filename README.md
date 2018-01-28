@@ -10,7 +10,7 @@ Focused on statistical methods and learning the software package R.
 
 Coursework included analyzing the London housing market ([pdf](https://github.com/heidimhurst/ucl_msc/blob/master/term1/gis_psa/bearma.pdf), [r code](https://github.com/heidimhurst/ucl_msc/blob/master/term1/gis_psa/bearmaneda.r)) and the presence of eating disorder risk factors among 15-year-old girls in London ([pdf](https://github.com/heidimhurst/ucl_msc/blob/master/term1/gis_psa/mirco.pdf), [r code](https://github.com/heidimhurst/ucl_msc/blob/master/term1/gis_psa/mirco.r)).
 
-![bivariate](img/brexit_ward.jpg)
+<a href="https://github.com/heidimhurst/ucl_msc/blob/master/term1/gis_psa/bearma.pdf"><img src="img/brexit_ward.jpg" align="center" width="50%" ></a>
 
 ### GIS Principles and Technology ([CEGEG082](https://sp.cege.ucl.ac.uk/study/Pages/Module-Guide.aspx?ModileCd=CEGEG082))
 Focused on exploratory data analysis, especially in Python.
