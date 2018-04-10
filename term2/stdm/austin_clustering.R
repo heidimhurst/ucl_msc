@@ -30,7 +30,6 @@ aus_trash <- aus_all[which(apply(aus_all, 1,
 
 
 # ---- Basic Dataviz ----
-# TODO: tweak for visualization standards
 all_color <- 'darkblue'
 pot_color <- 'magenta'
 
@@ -45,16 +44,18 @@ par(mar=c(9, 4.1, 4.1, 2.1))
 # force it to not be in scientific notation
 options(scipen = 999)
 # plot bars overlaid - change limits to fit labels etc
-xx <- barplot(aus_methods/nrow(aus_all), col = all_color, las = 2, ylim = c(-1, 1))
+xx <- barplot(aus_methods/nrow(aus_all), col = all_color, las = 2, 
+              ylim = c(-1, 1), yaxt = "n")
 barplot(-aus_pot_methods$Freq/nrow(aus_pot), 
-        col= pot_color, add = T, las = 2, ylim = c(-0.1, 1))
+        col= pot_color, add = T, las = 2, ylim = c(-0.1, 1), yaxt = "n")
 # add numbers to top
 text(x = xx, y = data.frame(aus_methods)$Freq/nrow(aus_all), 
      label = data.frame(aus_methods)$Freq, 
      pos = 3, cex = 0.8, col = all_color)
 text(x = xx, y = -aus_pot_methods$Freq/nrow(aus_pot), label = aus_pot_methods$Freq, 
      pos = 1, cex = 0.8, col = pot_color)
-
+# add custom axis labels
+axis(2, at = c(-1,-0.5,0,0.5,1), labels = c('100%', '50%', '0%', '50%', '100%'))
 # add legend, title information
 legend("topright",
        legend = c("All Other Complaints", "Pothole Complaints"),
@@ -63,67 +64,114 @@ legend("topright",
 title("Austin 2017 - Submission Method")
 
 
+
 # setup margins, etc
 par(mfrow=c(1,1))
-par(mar=c(3, 4.1, 4.1, 2.1))
+par(mar=c(6, 4.1, 4.1, 2.1))
 # plot as bar chart for consistency
 aus_create_wk <- data.frame(table(week(aus_all$Created.Date.cleaned)))
 aus_pot_create_wk <- data.frame(table(week(aus_pot$Created.Date.cleaned)))
 
 xx <- barplot(aus_create_wk$Freq/nrow(aus_all), 
-              col = all_color, las = 2, ylim = c(-.05, .05))
+              col = all_color, las = 2, ylim = c(-.05, .05), yaxt = "n")
 barplot(-aus_pot_create_wk$Freq/nrow(aus_pot), 
         col= pot_color, add = T, las = 2, ylim = c(-.05, .05),
-        xlab = "Week")
-
-aus_create_mo <- data.frame(table(month(aus_all$Created.Date.cleaned)))
-aus_pot_create_mo <- data.frame(table(month(aus_pot$Created.Date.cleaned)))
-
-xx <- barplot(aus_create_mo$Freq/nrow(aus_all), 
-              col = all_color, las = 2, ylim = c(-.15, .15))
-barplot(-aus_pot_create_mo$Freq/nrow(aus_pot), 
-        col= pot_color, add = T, las = 2, ylim = c(-.15, .15),
-        xlab = "Week")
-
-
-# add numbers to top
-text(x = xx, y = data.frame(aus_methods)$Freq/nrow(aus_all), 
-     label = data.frame(aus_methods)$Freq, 
-     pos = 3, cex = 0.8, col = all_color)
-text(x = xx, y = -aus_pot_methods$Freq/nrow(aus_pot), label = aus_pot_methods$Freq, 
-     pos = 1, cex = 0.8, col = pot_color)
-
+        yaxt = "n")
+# add month markers
+axis(2, at = c(-0.04,-0.02,0,0.02,0.04), labels = c('4%', '2%', '0%', '2%', '4%'))
+axis(1, at = 1.2 * (1 + seq(1,49, length.out = 12)), las = 2,
+     labels = c('January', 'February', 'March', 'April', 'May', 'June','July', 
+                'August','September','October', 'November', 'December'))
 # add legend, title information
 legend("topright",
        legend = c("All Other Complaints", "Pothole Complaints"),
        fill = c(all_color, pot_color),
        bty = 'n', pt.cex = 1, cex = 0.75)
-title("Austin 2017 - Submission Method")
+title("Austin 2017 - Open Date")
 
 
-# plot hist of open date for all, pothole
-hist(week(aus_all$Created.Date.cleaned), col = all_color, breaks = 52, xlab = "Week",
-     main = "Austin 2017 Weekly Complaints - Open Date")
-hist(-week(aus_pot$Created.Date.cleaned)/nrow(aus_pot), col = pot_color, breaks = 52, add = T)
+# Closed by week
+# setup margins, etc
+par(mfrow=c(1,1))
+par(mar=c(6, 4.1, 4.1, 2.1))
+# plot as bar chart for consistency
+aus_close_wk <- data.frame(table(week(aus_all$Close.Date.cleaned)))
+aus_pot_close_wk <- data.frame(table(week(aus_pot$Close.Date.cleaned)))
+
+xx <- barplot(aus_close_wk$Freq/nrow(aus_all), 
+              col = all_color, las = 2, ylim = c(-.05, .05), yaxt = "n")
+barplot(-aus_pot_close_wk$Freq/nrow(aus_pot), 
+        col= pot_color, add = T, las = 2, ylim = c(-.05, .05),
+        yaxt = "n")
+# add month markers
+axis(2, at = c(-0.04,-0.02,0,0.02,0.04), labels = c('4%', '2%', '0%', '2%', '4%'))
+axis(1, at = 1.2 * (1 + seq(1,49, length.out = 12)), las = 2,
+     labels = c('January', 'February', 'March', 'April', 'May', 'June','July', 
+                'August','September','October', 'November', 'December'))
+# add legend, title information
 legend("topright",
        legend = c("All Other Complaints", "Pothole Complaints"),
        fill = c(all_color, pot_color),
        bty = 'n', pt.cex = 1, cex = 0.75)
+title("Austin 2017 - Close Date")
 
-# plost hist of close date for all, pothole
-hist(week(aus_all$Close.Date.cleaned), col = all_color, breaks = 52, 
-     main = "Austin 2017 Weekly Complaints - Close Date")
-hist(week(aus_pot$Close.Date.cleaned), col = pot_color, breaks = 52, add = T)
+# OPEN/CLOSE PLOTTING
+# ALL
+par(mfrow=c(1,1))
+par(mar=c(6, 4.1, 4.1, 2.1))
+xx <- barplot(aus_create_wk$Freq/nrow(aus_all), 
+              col = all_color, las = 2, ylim = c(-.05, .05), yaxt = "n")
+barplot(-aus_close_wk$Freq/nrow(aus_all), 
+        col= adjustcolor(all_color, 0.6), add = T, las = 2, ylim = c(-.05, .05),
+        yaxt = "n")
+# add month markers
+axis(2, at = c(-0.04,-0.02,0,0.02,0.04), labels = c('4%', '2%', '0%', '2%', '4%'))
+axis(1, at = 1.2 * (1 + seq(1,49, length.out = 12)), las = 2,
+     labels = c('January', 'February', 'March', 'April', 'May', 'June','July', 
+                'August','September','October', 'November', 'December'))
+# add legend, title information
+legend("topright",
+       legend = c("Open Date", "Close Date"),
+       fill = c(all_color, adjustcolor(all_color, 0.6)),
+       bty = 'n', pt.cex = 1, cex = 0.75)
+title("Austin 2017 - All Complaints")
 
-# overlay open date and close date for all
-hist(week(aus_all$Created.Date.cleaned), col=rgb(1,0,0,0.5), breaks = 52, 
-     main = "Austin 2017 Weekly Complaints - Open vs Close Date")
-hist(week(aus_all$Close.Date.cleaned), col=rgb(0,0,1,0.5), breaks = 52, add = T)
+# POTHOLES
+par(mfrow=c(1,1))
+par(mar=c(6, 4.1, 4.1, 2.1))
+xx <- barplot(aus_pot_create_wk$Freq/nrow(aus_pot), 
+              col = pot_color, las = 2, ylim = c(-.05, .05), yaxt = "n")
+barplot(-aus_pot_close_wk$Freq/nrow(aus_pot), 
+        col= adjustcolor(pot_color, 0.4), add = T, las = 2, ylim = c(-.05, .05),
+        yaxt = "n")
+# add month markers
+axis(2, at = c(-0.04,-0.02,0,0.02,0.04), labels = c('4%', '2%', '0%', '2%', '4%'))
+axis(1, at = 1.2 * (1 + seq(1,49, length.out = 12)), las = 2,
+     labels = c('January', 'February', 'March', 'April', 'May', 'June','July', 
+                'August','September','October', 'November', 'December'))
+# add legend, title information
+legend("topright",
+       legend = c("Open Date", "Close Date"),
+       fill = c(pot_color, adjustcolor(pot_color, 0.6)),
+       bty = 'n', pt.cex = 1, cex = 0.75)
+title("Austin 2017 - Pothole Complaints")
 
-# plot hist of duration - use log to be able to see better
-hist(log(as.numeric(aus_all$duration)), col=all_color,
-     main = "Austin 2017 Complaint Duration", xlab = "log of duration")
-hist(log(as.numeric(aus_pot$duration)), col=pot_color, add = T)
+
+# # plot hist of duration - use log to be able to see better
+# hist(log(as.numeric(aus_all$duration)), col=all_color,
+#      main = "Austin 2017 Complaint Duration", xlab = "log of duration")
+# hist(log(as.numeric(aus_pot$duration)), col=pot_color, add = T)
+# 
+# # bin durations
+# aus_all$Days.Taken <- as.numeric(aus_all$duration/86400)
+# aus_all$Custom.Taken <- cut(aus_all$Days.Taken, 
+#                                  breaks = 
+#                                    c(-1, 1, 7, 14, 30,  91, 183, 365, 448), 
+#                                  labels = c("1 Day", "1 Week",	"Fortnight",	"1 Month",	"3 Months",	"6 Months",	"1 Year",	"More than a Year")
+# )
+# # create table and plot that mofo
+# aus_duration <- table(aus_all$Custom.Taken)
+
 
 
 # ---- Clustering Setup ----
@@ -294,36 +342,209 @@ bos_pot <- boston[which(apply(boston, 1,
                                function(r) any(grepl('pothole', r, ignore.case = TRUE)))),]
 
 # ---- boston visualizations ----
-# look at methods - need to turn labels sideways to see
-barplot(table(boston$Source)/nrow(boston), las = 2)
-barplot(table(bos_pot$Source)/nrow(bos_pot), col=rgb(1,1,0,0.5), las = 2, add = T)
+all_color <- 'darkblue'
+pot_color <- 'magenta'
 
-# time visualization - open date
-hist(month(boston$open_dt_cleaned), breaks = 12)
-hist(month(bos_pot$open_dt_cleaned), col=rgb(1,0,1,0.5), breaks = 12, add = T)
+# PLOT THIS - bar chart - methods
+# sort and ensure order is the same for both
+bos_methods <- sort(table(boston$Source), decreasing = TRUE)
+methods_order <- rownames(bos_methods)
+bos_pot_methods <- data.frame(table(bos_pot$Source))
+bos_pot_methods <- bos_pot_methods[match(methods_order, bos_pot_methods$Var1),]
+# ensure we have enough space for labels by changing margins
+par(mar=c(10, 4.1, 4.1, 2.1))
+# force it to not be in scientific notation
+options(scipen = 999)
+# plot bars overlaid - change limits to fit labels etc
+xx <- barplot(bos_methods/nrow(boston), col = all_color, las = 2, 
+              ylim = c(-0.5, 0.5), yaxt = "n")
+barplot(-bos_pot_methods$Freq/nrow(bos_pot), 
+        col= pot_color, add = T, las = 2, yaxt = "n")
+# add numbers to top
+text(x = xx, y = data.frame(bos_methods)$Freq/nrow(boston), 
+     label = data.frame(bos_methods)$Freq, 
+     pos = 3, cex = 0.8, col = all_color)
+text(x = xx, y = -bos_pot_methods$Freq/nrow(bos_pot), label = bos_pot_methods$Freq, 
+     pos = 1, cex = 0.8, col = pot_color)
+# add custom axis labels
+axis(2, at = c(-0.5,-0.25, 0,0.25,0.5), labels = c('50%', '25%', '0%', '25%', '50%'))
+# add legend, title information
+legend("topright",
+       legend = c("All Other Complaints", "Pothole Complaints"),
+       fill = c(all_color, pot_color),
+       bty = 'n', pt.cex = 1, cex = 0.75)
+title("Boston 2017 - Submission Method")
 
-hist(week(boston$open_dt_cleaned), breaks = 52)
-hist(week(bos_pot$open_dt_cleaned), col=rgb(1,0,1,0.5), breaks = 52, add = T)
 
-# time visualization - close date
-hist(month(boston$closed_dt_cleaned), breaks = 12)
-hist(month(bos_pot$closed_dt_cleaned), col=rgb(1,0,1,0.5), breaks = 12, add = T)
 
-hist(week(boston$closed_dt_cleaned), breaks = 52)
-hist(week(bos_pot$closed_dt_cleaned), col=rgb(1,0,1,0.5), breaks = 52, add = T)
+# setup margins, etc
+par(mfrow=c(1,1))
+par(mar=c(6, 4.1, 4.1, 2.1))
+# plot as bar chart for consistency
+bos_create_wk <- data.frame(table(week(boston$open_dt_cleaned)))
+bos_pot_create_wk <- data.frame(table(week(bos_pot$open_dt_cleaned)))
 
-# overlay open and close dates for all 
-hist(week(boston$open_dt_cleaned), col=rgb(0,0,0), breaks = 52)
-hist(week(boston$closed_dt_cleaned), col=rgb(1,0,0,0.5), breaks = 52, add = T)
+xx <- barplot(bos_create_wk$Freq/nrow(boston), 
+              col = all_color, las = 2, ylim = c(-.1, .1), yaxt = "n")
+barplot(-bos_pot_create_wk$Freq/nrow(bos_pot), 
+        col= pot_color, add = T, las = 2, ylim = c(-.1, .1),
+        yaxt = "n")
+# add month markers
+axis(2, at = c(-0.1,-0.05,0,0.05,0.1), labels = c('10%', '5%', '0%', '5%', '10%'))
+axis(1, at = 1.2 * (1 + seq(1,49, length.out = 12)), las = 2,
+     labels = c('January', 'February', 'March', 'April', 'May', 'June','July', 
+                'August','September','October', 'November', 'December'))
+# add legend, title information
+legend("topright",
+       legend = c("All Other Complaints", "Pothole Complaints"),
+       fill = c(all_color, pot_color),
+       bty = 'n', pt.cex = 1, cex = 0.75)
+title("Boston 2017 - Open Date")
 
-# overlay open and close dates for potholes
-hist(week(bos_pot$open_dt_cleaned), col=rgb(0,0,0), breaks = 52)
-hist(week(bos_pot$closed_dt_cleaned), col=rgb(1,0,0,0.5), breaks = 52, add = T)
 
-# duration visualization (log scale)
-hist(log(as.numeric(boston$duration)))
-hist(log(as.numeric(bos_pot$duration)), col = rgb(1,0,1,0.5), add = T)
+# Closed by week
+# setup margins, etc
+par(mfrow=c(1,1))
+par(mar=c(6, 4.1, 4.1, 2.1))
+# plot as bar chart for consistency
+bos_close_wk <- data.frame(table(week(boston$closed_dt_cleaned)))
+bos_pot_close_wk <- data.frame(table(week(bos_pot$closed_dt_cleaned)))
 
+xx <- barplot(bos_close_wk$Freq/nrow(boston), 
+              col = all_color, las = 2, ylim = c(-.1, .05), yaxt = "n")
+barplot(-bos_pot_close_wk$Freq/nrow(bos_pot), 
+        col= pot_color, add = T, las = 2, ylim = c(-.1, .05),
+        yaxt = "n")
+# add month markers
+axis(2, at = c(-0.1,-0.05,0,0.05), labels = c('10%', '5%', '0%', '5%'))
+axis(1, at = 1.2 * (1 + seq(1,49, length.out = 12)), las = 2,
+     labels = c('January', 'February', 'March', 'April', 'May', 'June','July', 
+                'August','September','October', 'November', 'December'))
+# add legend, title information
+legend("topright",
+       legend = c("All Other Complaints", "Pothole Complaints"),
+       fill = c(all_color, pot_color),
+       bty = 'n', pt.cex = 1, cex = 0.75)
+title("Boston 2017 - Close Date")
+
+# OPEN/CLOSE PLOTTING
+# ALL
+par(mfrow=c(1,1))
+par(mar=c(6, 4.1, 4.1, 2.1))
+xx <- barplot(bos_create_wk$Freq/nrow(boston), 
+              col = all_color, las = 2, ylim = c(-.05, .05), yaxt = "n")
+barplot(-bos_close_wk$Freq/nrow(boston), 
+        col= adjustcolor(all_color, 0.6), add = T, las = 2, ylim = c(-.05, .05),
+        yaxt = "n")
+# add month markers
+axis(2, at = c(-0.04,-0.02,0,0.02,0.04), labels = c('4%', '2%', '0%', '2%', '4%'))
+axis(1, at = 1.2 * (1 + seq(1,49, length.out = 12)), las = 2,
+     labels = c('January', 'February', 'March', 'April', 'May', 'June','July', 
+                'August','September','October', 'November', 'December'))
+# add legend, title information
+legend("topright",
+       legend = c("Open Date", "Close Date"),
+       fill = c(all_color, adjustcolor(all_color, 0.6)),
+       bty = 'n', pt.cex = 1, cex = 0.75)
+title("Boston 2017 - All Complaints")
+
+# POTHOLES
+par(mfrow=c(1,1))
+par(mar=c(6, 4.1, 4.1, 2.1))
+xx <- barplot(bos_pot_create_wk$Freq/nrow(bos_pot), 
+              col = pot_color, las = 2, ylim = c(-.1, .1), yaxt = "n")
+barplot(-bos_pot_close_wk$Freq/nrow(bos_pot), 
+        col= adjustcolor(pot_color, 0.4), add = T, las = 2, ylim = c(-.1, .1),
+        yaxt = "n")
+# add month markers
+axis(2, at = c(-0.1,-0.05,0,0.05,0.1), labels = c('10%', '5%', '0%', '5%', '10%'))
+axis(1, at = 1.2 * (1 + seq(1,49, length.out = 12)), las = 2,
+     labels = c('January', 'February', 'March', 'April', 'May', 'June','July', 
+                'August','September','October', 'November', 'December'))
+# add legend, title information
+legend("topright",
+       legend = c("Open Date", "Close Date"),
+       fill = c(pot_color, adjustcolor(pot_color, 0.6)),
+       bty = 'n', pt.cex = 1, cex = 0.75)
+title("Boston 2017 - Pothole Complaints")
+
+# ---- Duration Plot Comparison ---
+# Austin Vs Boston Duration
+aus_all$Days.Taken <- as.numeric(aus_all$duration/86400)
+aus_all$Custom.Taken <- cut(aus_all$Days.Taken, 
+                                  breaks = 
+                                    c(-1, 1, 7, 14, 30,  91, 183, 365, 448), 
+                                  labels = c("1 Day", "1 Week",	"Fortnight",	"1 Month",	"3 Months",	"6 Months",	"1 Year",	">1 Year")
+)
+boston$Days.Taken <- as.numeric(boston$duration/86400)
+boston$Custom.Taken <- cut(boston$Days.Taken, 
+                            breaks = 
+                              c(-1, 1, 7, 14, 30,  91, 183, 365, 448), 
+                            labels = c("1 Day", "1 Week",	"Fortnight",	"1 Month",	"3 Months",	"6 Months",	"1 Year",	">1 Year")
+)
+ # create table and plot that mofo
+aus_duration <- data.frame(table(aus_all$Custom.Taken))
+bos_duration <- data.frame(table(boston$Custom.Taken))
+# plot
+xx <- barplot(aus_duration$Freq/nrow(aus_all), names.arg = aus_duration$Var1,
+              col = all_color, las = 2, ylim = c(-.7, .6), yaxt = "n")
+barplot(-bos_duration$Freq/nrow(boston), 
+        col= adjustcolor(all_color, 0.6), add = T, las = 2, ylim = c(-.7, .6),
+        yaxt = "n")
+# fix axis labels
+axis(2, at = c(-0.5,-0.25,0,0.25,0.5), labels = c('50%', '25%', '0%', '25%', '50%'))
+# add numbers
+text(x = xx, y = aus_duration$Freq/nrow(aus_all), 
+     label = data.frame(aus_methods)$Freq, 
+     pos = 3, cex = 0.8, col = all_color)
+text(x = xx, y = -bos_duration$Freq/nrow(boston), label = bos_duration$Freq, 
+     pos = 1, cex = 0.8, col = adjustcolor(all_color, 0.6))
+
+# add legend, title information
+legend("topright",
+       legend = c("Austin", "Boston"),
+       fill = c(all_color, adjustcolor(all_color, 0.6)),
+       bty = 'n', pt.cex = 1, cex = 0.75)
+title("All Complaint Duration")
+
+# POTHOLE complaint duration
+aus_pot$Days.Taken <- as.numeric(aus_pot$duration/86400)
+aus_pot$Custom.Taken <- cut(aus_pot$Days.Taken, 
+                            breaks = 
+                              c(-1, 1, 7, 14, 30,  91, 183, 365, 448), 
+                            labels = c("1 Day", "1 Week", "Fortnight",  "1 Month",  "3 Months", "6 Months", "1 Year", ">1 Year")
+)
+bos_pot$Days.Taken <- as.numeric(bos_pot$duration/86400)
+bos_pot$Custom.Taken <- cut(bos_pot$Days.Taken, 
+                            breaks = 
+                              c(-1, 1, 7, 14, 30,  91, 183, 365, 448), 
+                            labels = c("1 Day", "1 Week",  "Fortnight",  "1 Month",  "3 Months", "6 Months", "1 Year", ">1 Year")
+)
+# create table and plot that mofo
+aus_pot_duration <- data.frame(table(aus_pot$Custom.Taken))
+bos_pot_duration <- data.frame(table(bos_pot$Custom.Taken))
+# plot
+xx <- barplot(aus_pot_duration$Freq/nrow(aus_pot), names.arg = aus_pot_duration$Var1,
+              col = pot_color, las = 2, ylim = c(-.8, .8), yaxt = "n")
+barplot(-bos_pot_duration$Freq/nrow(bos_pot), 
+        col= adjustcolor(pot_color, 0.4), add = T, las = 2, ylim = c(-.8, .8),
+        yaxt = "n")
+# fix axis labels
+axis(2, at = c(-0.5,0,0.5), 
+     labels = c('50%','0%','50%'))
+# add numbers
+text(x = xx, y = aus_pot_duration$Freq/nrow(aus_pot), 
+     label = data.frame(aus_methods)$Freq, 
+     pos = 3, cex = 0.8, col = pot_color)
+text(x = xx, y = -bos_pot_duration$Freq/nrow(bos_pot), label = bos_pot_duration$Freq, 
+     pos = 1, cex = 0.8, col = adjustcolor(pot_color, 0.4))
+
+# add legend, title information
+legend("topright",
+       legend = c("Austin", "Boston"),
+       fill = c(pot_color, adjustcolor(pot_color, 0.4)),
+       bty = 'n', pt.cex = 1, cex = 0.75)
+title("Pothole Complaint Duration")
 
 
 
@@ -367,7 +588,6 @@ hist(austin_all$Created.Date.cleaned, breaks = 12,
 # can we plot this using gg plot?
 library(ggplot2)
 
-ggplot2(austin_all, aes = (x=Created.Date.cleaned,))
 
 # similar processing for close date - 190 not processed because they were transfered, open, duplicate, in progress, etc...
 austin_all$Close.Date.cleaned <- ifelse(is.na(mdy_hms(as.character(austin_all$Close.Date))),
