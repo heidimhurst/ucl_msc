@@ -11,12 +11,27 @@ library(scales) # for scaling dataset
 library(leaflet) # for visualizing interactive maps
 library(tictoc) # for benchmarking
 
-# ---- ALL AUSTIN Parsing all dates - from scratch ----
+# ---- ALL AUSTIN DATA SETUP ----
 # the updated download seems to be working just fine - will work from that moving forward
 aus_all <- read.csv("Austin_311_Public_Data.csv")
 aus_all$Created.Date.cleaned <- mdy_hms(aus_all$Created.Date)
 aus_all$Close.Date.cleaned <- mdy_hms(aus_all$Close.Date)
 aus_all$duration <- aus_all$Close.Date.cleaned - aus_all$Created.Date.cleaned
+
+# convert methods to numbers
+aus_all$Method.numeric <- sapply(as.character(aus_all$Method.Received), switch, 
+                                 "Spot311 Interface" = 1, "Phone" = 2, "Web" = 3, 4,
+                                 USE.NAMES = F)
+
+# normalize fields of interest
+aus_all$Method.numeric.rescale <- rescale(aus_all$Method.numeric)
+aus_all$duration.rescale <- rescale(as.numeric(aus_all$duration))
+aus_all$State.Plane.X.Coordinate.rescale <- rescale(aus_all$State.Plane.X.Coordinate)
+aus_all$State.Plane.Y.Coordinate.rescale <- rescale(aus_all$State.Plane.Y.Coordinate)
+aus_all$Created.Date.cleaned.rescale <- rescale(aus_all$Created.Date.cleaned)
+
+# export
+write.csv(aus_all, "Austin_2017_ds.csv")
 
 hist(week(aus_all$Created.Date.cleaned), breaks = 52)
 
@@ -24,9 +39,20 @@ hist(week(aus_all$Created.Date.cleaned), breaks = 52)
 aus_pot <- aus_all[which(apply(aus_all, 1, 
                                function(r) any(grepl('pothole', r, ignore.case = TRUE)))),]
 
-# select just trash - what expression do we want to look for?
-aus_trash <- aus_all[which(apply(aus_all, 1, 
-                           function(r) any(grepl('trash', r, ignore.case = TRUE)))),]
+# normalize fields of interest
+aus_pot$Method.numeric.rescale.pot <- rescale(aus_pot$Method.numeric)
+aus_pot$duration.rescale.pot <- rescale(as.numeric(aus_pot$duration))
+aus_pot$State.Plane.X.Coordinate.rescale.pot <- rescale(aus_pot$State.Plane.X.Coordinate)
+aus_pot$State.Plane.Y.Coordinate.rescale.pot <- rescale(aus_pot$State.Plane.Y.Coordinate)
+aus_pot$Created.Date.cleaned.rescale.pot <- rescale(aus_pot$Created.Date.cleaned)
+
+# export
+write.csv(aus_pot, "Austin_pot_2017_ds.csv")
+
+# select duplicates
+aus_pot_dup <- aus_all[which(apply(aus_pot, 1, 
+                               function(r) any(grepl('duplicate', r, ignore.case = TRUE)))),]
+
 
 
 # ---- Basic Dataviz ----
@@ -176,32 +202,65 @@ title("Austin 2017 - Pothole Complaints")
 
 # ---- Clustering Setup ----
 # convert factor to integer
-aus_all$Method.received <- as.numeric(aus_all$Method.Received)
+aus_all$Method.numeric <- sapply(as.character(aus_all$Method.Received), switch, 
+                                 "Spot311 Interface" = 1, "Phone" = 2, "Web" = 3, "Open311" = 4, 
+                                 "E-Mail" = 5, "Field Request" = 6, "CSR - Follow On SR" = 7, "Other" = 8,
+                                 USE.NAMES = F)
 
 # scale rows we're interested in to 0,1 to analyze
-aus_all$Method.received <- rescale(aus_all$Method.received)
-aus_all$duration <- rescale(as.numeric(aus_all$duration))
-aus_all$State.Plane.X.Coordinate <- rescale(aus_all$State.Plane.X.Coordinate)
-aus_all$State.Plane.Y.Coordinate <- rescale(aus_all$State.Plane.Y.Coordinate)
-aus_all$Created.Date.cleaned <- rescale(aus_all$Created.Date.cleaned)
+aus_all$Method.numeric.rescale <- rescale(aus_all$Method.numeric)
+aus_all$duration.rescale <- rescale(as.numeric(aus_all$duration))
+aus_all$State.Plane.X.Coordinate.rescale <- rescale(aus_all$State.Plane.X.Coordinate)
+aus_all$State.Plane.Y.Coordinate.rescale <- rescale(aus_all$State.Plane.Y.Coordinate)
+aus_all$Created.Date.cleaned.rescale <- rescale(aus_all$Created.Date.cleaned)
 
 # ---- DBSCAN ---- 
 # TODO - how to tune parameters for this? 
 # https://github.com/alitouka/spark_dbscan/wiki/Choosing-parameters-of-DBSCAN-algorithm
 # introduce into DBSCAN
-aus_all_scan <- data.matrix(subset(aus_all, select = c("Method.received", "duration", 
-                                                                      "State.Plane.X.Coordinate",
-                                                                      "State.Plane.Y.Coordinate", 
-                                                                      "Created.Date.cleaned")))
+aus_all_scan <- data.matrix(subset(aus_all, select = c("Method.numeric.rescale", "duration.rescale", 
+                                                                      "State.Plane.X.Coordinate.rescale",
+                                                                      "State.Plane.Y.Coordinate.rescale", 
+                                                                      "Created.Date.cleaned.rescale")))
 aus_all_s <- aus_all_scan[which(complete.cases(aus_all_scan)),]
 
 # this doesn't work with NAs, so find which rows have NA and remove
 aus_all_nona <- which(complete.cases(aus_all_scan)) # keep a record of which are which
-aus_all_scan <- data.matrix(as.numeric(complete.cases(aus_all_scan)))
+#aus_all_scan <- data.matrix(as.numeric(complete.cases(aus_all_scan)))
 # convert all components to numeric (from factors)
 tic("dbscan")
-aus_all_db <- dbscan(aus_all_scan, eps=0.5, minPts = 10)
+aus_all_db <- dbscan(aus_all_s, eps=0.5, minPts = 10)
 toc()
+
+aus_all[aus_all_nona, "db"] <- aus_all_db$cluster
+aus_all2 <- complete.cases(aus_all)
+# visualize
+m <- leaflet(aus_all2) %>%
+  addTiles() %>%
+  addCircleMarkers(~Longitude.Coordinate, ~Latitude.Coordinate, color=~factpal(db), stroke=TRUE,fillOpacity = 0.8,
+                   popup = paste("Cluster: ", aus_all2$db,"<br>",
+                                 "Status: ", aus_all2$SR.Status,"<br>",
+                                 "Duration: ", aus_all2$duration))
+m
+
+par(mfrow=c(ceiling(db_nclust/3),3))
+for (i in(unique(austin_all_duration$db))){
+  # plot state plane coordinates
+  plot(austin_all_duration[austin_all_duration$db == i,]$State.Plane.X.Coordinate, 
+       austin_all_duration[austin_all_duration$db == i,]$State.Plane.Y.Coordinate,
+       main = paste("Cluster",i, "-", 
+                    table(austin_all_duration$db)[toString(i)],
+                    "points", sep = ' '),
+       xlab = "x", ylab = 'y',
+       xlim = c(min(austin_all_duration$State.Plane.X.Coordinate), 
+                max(austin_all_duration$State.Plane.X.Coordinate)),
+       ylim = c(min(austin_all_duration$State.Plane.Y.Coordinate), 
+                max(austin_all_duration$State.Plane.Y.Coordinate)))
+  
+  # add title
+}
+
+
 
 # test for a bunch of things to see how many clusters there are based on the params
 eps <- c(0.001, 0.01, 0.05, 0.1, 0.5, 1, 5) # eps steps to test
@@ -321,25 +380,53 @@ for (i in(unique(austin_duration$km))){
                 max(austin_duration$State.Plane.Y.Coordinate)))
 }
 
-# ---- BOSTON ----
-# ---- boston data cleaning ----
-# read in all
-bos <- read.csv("Boston_311.csv")
-# convert date
-bos$open_dt_cleaned <- ymd_hms(bos$open_dt)
-boston <- bos[year(bos$open_dt_cleaned) == 2017,]
-boston$closed_dt_cleaned <- ymd_hms(boston$closed_dt)
-boston$duration <- boston$closed_dt_cleaned - boston$open_dt_cleaned
-
-# save this off so I don't have to do it again
-write.csv(boston, "Boston_2017.csv")
+# ---- BOSTON DATA SETUP----
+## read in all
+# bos <- read.csv("Boston_311.csv")
+# # convert date
+# bos$open_dt_cleaned <- ymd_hms(bos$open_dt)
+# boston <- bos[year(bos$open_dt_cleaned) == 2017,]
+# boston$closed_dt_cleaned <- ymd_hms(boston$closed_dt)
+# boston$duration <- boston$closed_dt_cleaned - boston$open_dt_cleaned
+# 
+# # save this off so I don't have to do it again
+# write.csv(boston, "Boston_2017.csv")
 
 # read it back in 
 boston <- read.csv("Boston_2017.csv")
 
+# create source numeric
+boston$Source.numeric <- sapply(as.character(boston$Source), switch, 
+                                "Citizens Connect App" = 1, "Constituent Call" = 2, 
+                                "City Worker App" = 3, 4,
+                                USE.NAMES = F)
+
+# normalize fields of interest
+boston$Source.numeric.rescale <- rescale(boston$Source.numeric)
+boston$open_dt_cleaned.rescale <- rescale(as.numeric(boston$open_dt_cleaned))
+boston$Latitude.rescale <- rescale(boston$Latitude)
+boston$Longitude.rescale <- rescale(boston$Longitude)
+boston$duration.rescale <- rescale(boston$duration)
+
+# export
+write.csv(boston, "Boston_2017_ds.csv")
+
 # find potholes
 bos_pot <- boston[which(apply(boston, 1, 
                                function(r) any(grepl('pothole', r, ignore.case = TRUE)))),]
+# identify all duplicates
+bos_pot_nodup <- boston[which(apply(bos_pot, 1, 
+                              function(r) any(grepl('Duplicate', r, ignore.case = TRUE)))),]
+
+# normalize fields of interest
+bos_pot$Source.numeric.rescale.pot <- rescale(bos_pot$Source.numeric)
+bos_pot$open_dt_cleaned.rescale.pot <- rescale(as.numeric(bos_pot$open_dt_cleaned))
+bos_pot$Latitude.rescale.pot <- rescale(bos_pot$Latitude)
+bos_pot$Longitude.rescale.pot <- rescale(bos_pot$Longitude)
+bos_pot$duration.rescale.pot <- rescale(bos_pot$duration)
+
+# export
+write.csv(bos_pot, "Boston_pot_2017_ds.csv")
 
 # ---- boston visualizations ----
 all_color <- 'darkblue'
@@ -688,6 +775,69 @@ austin_duration$State.Plane.Y.Coordinate <- rescale(austin_duration$State.Plane.
 austin_duration$Created.Date.cleaned <- rescale(austin_duration$Created.Date.cleaned)
 
 # ---- SCRATCH - DBSCAN ----
+db_run <- function(df_311, columns, plot_311 = TRUE, eps = 0.25, minPts = 10, db = "db"){
+  # introduce into DBSCAN
+  matrix_311 <- data.matrix(subset(df_311, select = columns))
+  # convert all components to numeric (from factors)
+  db_311 <- dbscan(matrix_311, eps=eps, minPts = minPts)
+  # add cluster back into original data
+  df_311$db <- db_311$cluster
+  
+  if (plot_311 == TRUE) {
+    # get number of clusters
+    db_nclust <- length(unique(df_311$db))
+    
+    # plot output
+    factpal <- colorFactor(topo.colors(db_nclust), 
+                           df_311$db)
+    
+    m <- leaflet(austin_duration) %>%
+      addTiles() %>%
+      addCircleMarkers(~Longitude.Coordinate, ~Latitude.Coordinate, color=~factpal(db), stroke=TRUE,fillOpacity = 0.8,
+                       popup = paste("Cluster: ", df_311$db,"<br>",
+                                     "Status: ", df_311$SR.Status,"<br>",
+                                     "Duration: ", df_311$duration,"<br>",
+                                     "Case Title: ", df_311$CASE_TITLE))
+    m
+    
+    par(mfrow=c(ceiling(db_nclust/3),3))
+    for (i in(unique(df_311$db))){
+      # plot state plane coordinates
+      plot(df_311[df_311$db == i,]$State.Plane.X.Coordinate, 
+           df_311[df_311$db == i,]$State.Plane.Y.Coordinate,
+           main = paste("Cluster",i, "-", 
+                        table(df_311$db)[toString(i)],
+                        "points", sep = ' '),
+           xlab = "x", ylab = 'y',
+           xlim = c(min(df_311$State.Plane.X.Coordinate), 
+                    max(df_311$State.Plane.X.Coordinate)),
+           ylim = c(min(df_311$State.Plane.Y.Coordinate), 
+                    max(df_311$State.Plane.Y.Coordinate)))
+      
+      # add title
+    }
+  }
+}
+
+# process austin data for use
+# convert method received to to number
+aus_all$Method.numeric <- sapply(as.character(aus_all$Method.Received), switch, 
+       "Spot311 Interface" = 1, "Phone" = 2, "Web" = 3, "Open311" = 4, 
+       "E-Mail" = 5, "Field Request" = 6, "CSR - Follow On SR" = 7, "Other" = 8,
+       USE.NAMES = F)
+
+
+# export for everyone's use
+write.csv(aus_all, "Austin_2017_ds.csv")
+# remove nas
+aus_all_nona <- aus_all
+db_run(aus_all, columns = c("Method.numeric", "duration", 
+                          "State.Plane.X.Coordinate",
+                          "State.Plane.Y.Coordinate", 
+                          "Created.Date.cleaned"))
+
+
+
 # introduce into DBSCAN
 austin_scan <- data.matrix(subset(austin_duration, select = c("Method.received", "duration", 
                                                               "State.Plane.X.Coordinate",
