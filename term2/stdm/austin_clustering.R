@@ -53,7 +53,10 @@ write.csv(aus_pot, "Austin_pot_2017_ds.csv")
 aus_pot_dup <- aus_all[which(apply(aus_pot, 1, 
                                function(r) any(grepl('duplicate', r, ignore.case = TRUE)))),]
 
-
+# ---- Austin Data Import ----
+# re-import(future use)
+aus_all <- read.csv("Austin_2017_ds.csv")
+aus_pot <- read.csv("Austin_pot_2017_ds.csv")
 
 # ---- Basic Dataviz ----
 all_color <- 'darkblue'
@@ -212,7 +215,7 @@ aus_all$Method.numeric.rescale <- rescale(aus_all$Method.numeric)
 aus_all$duration.rescale <- rescale(as.numeric(aus_all$duration))
 aus_all$State.Plane.X.Coordinate.rescale <- rescale(aus_all$State.Plane.X.Coordinate)
 aus_all$State.Plane.Y.Coordinate.rescale <- rescale(aus_all$State.Plane.Y.Coordinate)
-aus_all$Created.Date.cleaned.rescale <- rescale(aus_all$Created.Date.cleaned)
+aus_all$Created.Date.cleaned.rescale <- rescale(as.numeric(aus_all$Created.Date.cleaned))
 
 # ---- DBSCAN ---- 
 # TODO - how to tune parameters for this? 
@@ -266,14 +269,14 @@ for (i in(unique(austin_all_duration$db))){
 eps <- c(0.001, 0.01, 0.05, 0.1, 0.5, 1, 5) # eps steps to test
 minPts <- c(10,100,1000) # minimum points to test
 nclust <- c() # create matrix for number of clusters
-aus_all_db <- matrix(, nrow = length(aus_all_nona), ncol = length(eps)*minPts) # to store dbs, so we don't have to re-reun
+aus_all_db <- matrix(, nrow = length(aus_all_s), ncol = length(eps)*minPts) # to store dbs, so we don't have to re-reun
 tic.clearlog()
 for (j in minPts){
   for (i in 1:length(eps)){
     # clear log, so we can get time counts
     tic.clearlog()
-    db <- dbscan(aus_all_scan, eps=0.5, minPts = j)
-    nclust[i] <- length(unique(aus_all_db$clusters))
+    db <- dbscan(aus_all_s, eps=0.5, minPts = j)
+    nclust[i] <- length(unique(db$clusters))
     aus_all_db[,i] <- db$cluster
     toc(log = TRUE, quiet = FALSE)
   }
@@ -284,7 +287,7 @@ unlist(log.txt)
 
 
 # add cluster back into original data
-aus_all[aus_all_nona, "db"] <- aus_all_db$cluster
+aus_all[aus_all_nona, "db"] <- aus_all_db
 
 # plot output
 factpal <- colorFactor(topo.colors(db_nclust), 
