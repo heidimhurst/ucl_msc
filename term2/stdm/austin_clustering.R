@@ -204,6 +204,7 @@ title("Austin 2017 - Pothole Complaints")
 
 
 # ---- Clustering Setup ----
+# don't need to do this - just need to used the normalized columns
 # convert factor to integer
 aus_all$Method.numeric <- sapply(as.character(aus_all$Method.Received), switch, 
                                  "Spot311 Interface" = 1, "Phone" = 2, "Web" = 3, "Open311" = 4, 
@@ -221,23 +222,27 @@ aus_all$Created.Date.cleaned.rescale <- rescale(as.numeric(aus_all$Created.Date.
 # TODO - how to tune parameters for this? 
 # https://github.com/alitouka/spark_dbscan/wiki/Choosing-parameters-of-DBSCAN-algorithm
 # introduce into DBSCAN
-aus_all_scan <- data.matrix(subset(aus_all, select = c("Method.numeric.rescale", "duration.rescale", 
-                                                                      "State.Plane.X.Coordinate.rescale",
-                                                                      "State.Plane.Y.Coordinate.rescale", 
-                                                                      "Created.Date.cleaned.rescale")))
+aus_all_scan <- data.matrix(subset(aus_all, select = c("Method.numeric.rescale", 
+                                                       "duration.rescale", 
+                                                       "State.Plane.X.Coordinate.rescale",
+                                                       "State.Plane.Y.Coordinate.rescale", 
+                                                       "Created.Date.cleaned.rescale")))
 aus_all_s <- aus_all_scan[which(complete.cases(aus_all_scan)),]
 
 # this doesn't work with NAs, so find which rows have NA and remove
 aus_all_nona <- which(complete.cases(aus_all_scan)) # keep a record of which are which
-#aus_all_scan <- data.matrix(as.numeric(complete.cases(aus_all_scan)))
+# aus_all_scan <- data.matrix(as.numeric(complete.cases(aus_all_scan)))
 # convert all components to numeric (from factors)
 tic("dbscan")
 aus_all_db <- dbscan(aus_all_s, eps=0.5, minPts = 10)
 toc()
 
 aus_all[aus_all_nona, "db"] <- aus_all_db$cluster
-aus_all2 <- complete.cases(aus_all)
+aus_all2 <- aus_all[aus_all_nona,]
+
 # visualize
+db_nclust <- length(unique(aus_all2$db))
+factpal <- colorFactor(topo.colors(db_nclust),aus_all2$db)
 m <- leaflet(aus_all2) %>%
   addTiles() %>%
   addCircleMarkers(~Longitude.Coordinate, ~Latitude.Coordinate, color=~factpal(db), stroke=TRUE,fillOpacity = 0.8,

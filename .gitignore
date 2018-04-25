@@ -3,6 +3,6 @@
 .DS_Store
 *.ipynb_checkpoints/
 */.RData
-*/logs/
+*logs/
 *cache/
 /term2/networks/networkscw
