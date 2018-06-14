@@ -34,11 +34,23 @@ Coursework included analysis of bank and flood height for Arun River ([pdf](http
 
 
 ## Term 2
-Term 2 courses include the following:
-* Image Understanding ([CEGEG075](https://sp.cege.ucl.ac.uk/study/Pages/Module-Guide.aspx?ModileCd=CEGEG075))
-* Spatial Databases ([CEGEG129](https://sp.cege.ucl.ac.uk/study/Pages/Module-Guide.aspx?ModileCd=CEGEG129))
-* Network and Locational Analysis ([GEOGG152](http://www.geog.ucl.ac.uk/study/graduate-taught/msc-modules/geogg152))
-* Spatio-temporal Data Mining ([CEGEG076](https://sp.cege.ucl.ac.uk/study/Pages/Module-Guide.aspx?ModileCd=CEGEG076))
+Term 2 courses included the following:
+
+### Image Understanding ([CEGEG075](https://sp.cege.ucl.ac.uk/study/Pages/Module-Guide.aspx?ModileCd=CEGEG075))
+Explored traditional image analysis techniques, such as edge detection and feature extraction.
+
+Coursework explored detection of vehicles in overhead imagery _without_ machine learning techniques ([pdf](https://github.com/heidimhurst/ucl_msc/blob/master/term2/images/coursework/ImageCoursework.pdf), [iPython](https://github.com/heidimhurst/ucl_msc/blob/master/term2/images/coursework/VPFW6_coursework.ipynb))
+
+### Network and Locational Analysis ([GEOGG152](http://www.geog.ucl.ac.uk/study/graduate-taught/msc-modules/geogg152))
+Coursework focused on the creation of a novel run-suggestion system, creating a cycle from a user-specified starting point that prioritized the traversal of novel graph edges ([html](https://github.com/heidimhurst/ucl_msc/blob/master/term2/networks/Coursework.html))
+
+### Spatio-temporal Data Mining ([CEGEG076](https://sp.cege.ucl.ac.uk/study/Pages/Module-Guide.aspx?ModileCd=CEGEG076))
+Focused on spatio-temporal methods, including ARIMA, STARIMA, SVM, random forests, clustering.
+
+Group coursework analyzing the Boston 311 dataset.
+
+### Spatial Databases ([CEGEG129](https://sp.cege.ucl.ac.uk/study/Pages/Module-Guide.aspx?ModileCd=CEGEG129))
+Basic introduction to SQL databases.
 
 ## Dissertation
-Dissertation topic pending - stay tuned!
+For my dissertation topic, I'll be working to understand the impact of image resolution on automated vehicle detection in satellite imagery using machine learning techniques (specifically, Google's Object Detection API using TensorFlow and Convolutional Neural Networks).  Code for that project can be found in a separate repository [here](https://github.com/heidimhurst/dissertation).
